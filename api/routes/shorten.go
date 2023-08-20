@@ -1,13 +1,16 @@
 package routes
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"time"
+
 	"github.com/adarsh-sgh/cf-merge/database"
-	"github.com/adarsh-sgh/cf-merge/helpers"
-	"github.com/asaskevich/govalidator"
+
+	// "github.com/asaskevich/govalidator"
+	"strings"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -48,7 +51,7 @@ func ShortenURL(c *fiber.Ctx) error {
 	if err == redis.Nil {
 		_ = r2.Set(database.Ctx, c.IP(), os.Getenv("API_QUOTA"), 30*60*time.Second).Err() //change the rate_limit_reset here, change `30` to your number
 	} else if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Unable to connect to server",
 		})
@@ -65,24 +68,24 @@ func ShortenURL(c *fiber.Ctx) error {
 	}
 
 	// check if the input is an actual URL
-	if !govalidator.IsURL(body.URL) {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid URL",
-		})
-	}
+	// if !govalidator.IsURL(body.URL) {
+	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+	// 		"error": "Invalid URL",
+	// 	})
+	// }
 
 	// check for the domain error
 	// users may abuse the shortener by shorting the domain `localhost:3000` itself
 	// leading to a inifite loop, so don't accept the domain for shortening
-	if !helpers.RemoveDomainError(body.URL) {
-		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"error": "haha... nice try",
-		})
-	}
+	// if !helpers.RemoveDomainError(body.URL) {
+	// 	return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+	// 		"error": "haha... nice try",
+	// 	})
+	// }
 
 	// enforce https
 	// all url will be converted to https before storing in database
-	body.URL = helpers.EnforceHTTP(body.URL)
+	// body.URL = helpers.EnforceHTTP(body.URL)
 
 	// check if the user has provided any custom dhort urls
 	// if yes, proceed,
@@ -109,8 +112,12 @@ func ShortenURL(c *fiber.Ctx) error {
 	if body.Expiry == 0 {
 		body.Expiry = 24 // default expiry of 24 hours
 	}
-	err = r.Set(database.Ctx, id, body.URL, body.Expiry*3600*time.Second).Err()
+	// split URL.body by comma 
+	usernames:= strings.Split(body.URL, ",")
+	log.Println(usernames,len(usernames))
+	err = r.SAdd(database.Ctx, id, usernames).Err()
 	if err != nil {
+		log.Println(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Unable to connect to server",
 		})

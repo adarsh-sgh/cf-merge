@@ -1,6 +1,12 @@
 package routes
 
 import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"strings"
+
 	"github.com/adarsh-sgh/cf-merge/database"
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
@@ -16,7 +22,7 @@ func ResolveURL(c *fiber.Ctx) error {
 	r := database.CreateClient(0)
 	defer r.Close()
 
-	value, err := r.Get(database.Ctx, url).Result()
+	value, err := r.SMembers(database.Ctx, url).Result()
 	if err == redis.Nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "short not found on database",
@@ -31,5 +37,43 @@ func ResolveURL(c *fiber.Ctx) error {
 	defer rInr.Close()
 	_ = rInr.Incr(database.Ctx, "counter")
 	// redirect to original URL
-	return c.Redirect(value, 301)
+	selectedProfile := "https://codeforces.com/profile/"+SelectProfile(value)
+	return c.Redirect(selectedProfile, 301)
 }
+
+type userData struct {
+	Handle string `json:"handle"`
+	Rating int `json:"rating"`
+}
+type cfResponse struct {
+	Status string `json:"status"`
+	Result []userData `json:"result"`
+}
+
+func SelectProfile(profiles []string) string {
+	users := strings.Join(profiles, ";")
+	userInfoUrl := fmt.Sprintf("https://codeforces.com/api/user.info?handles=%s", users)
+	resp, err := http.Get(userInfoUrl)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer resp.Body.Close()
+	var userInfos cfResponse
+	if err := json.NewDecoder(resp.Body).Decode(&userInfos); err != nil {
+		log.Fatalln(err)
+	}
+	if userInfos.Status != "OK" {
+		log.Fatalln("Error in fetching user info")
+		log.Println(userInfos)
+	}
+	maxRating := 0
+	maxRatingUser := ""
+	for _, user := range userInfos.Result {
+		if user.Rating > maxRating {
+			maxRating = user.Rating
+			maxRatingUser = user.Handle
+		}
+	}
+	return maxRatingUser
+}
+

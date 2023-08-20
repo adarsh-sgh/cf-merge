@@ -26,6 +26,7 @@ func setupRoutes(app *fiber.App) {
 }
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println(err)
