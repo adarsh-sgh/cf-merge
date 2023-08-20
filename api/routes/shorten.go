@@ -1,10 +1,10 @@
 package routes
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"time"
-
 	"github.com/adarsh-sgh/cf-merge/database"
 	"github.com/adarsh-sgh/cf-merge/helpers"
 	"github.com/asaskevich/govalidator"
@@ -47,7 +47,12 @@ func ShortenURL(c *fiber.Ctx) error {
 	val, err := r2.Get(database.Ctx, c.IP()).Result()
 	if err == redis.Nil {
 		_ = r2.Set(database.Ctx, c.IP(), os.Getenv("API_QUOTA"), 30*60*time.Second).Err() //change the rate_limit_reset here, change `30` to your number
-	} else {
+	} else if err != nil {
+		fmt.Println(err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Unable to connect to server",
+		})
+	} else{
 		val, _ = r2.Get(database.Ctx, c.IP()).Result()
 		valInt, _ := strconv.Atoi(val)
 		if valInt <= 0 {
