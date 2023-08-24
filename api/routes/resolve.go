@@ -32,8 +32,8 @@ func ResolveURL(c *fiber.Ctx) error {
 			"error": "cannot connect to DB",
 		})
 	}
-	// increment the counter
-	rInr := database.CreateClient(1)
+// redis cloud allows only dbNo = 0 for free tier
+	rInr := database.CreateClient(0)
 	defer rInr.Close()
 	_ = rInr.Incr(database.Ctx, "counter")
 	// redirect to original URL

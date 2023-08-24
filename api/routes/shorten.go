@@ -45,7 +45,9 @@ func ShortenURL(c *fiber.Ctx) error {
 	// if yes, decrement the calls remaining by one, else add the IP to database
 	// with expiry of `30mins`. So in this case the user will be able to send 10
 	// requests every 30 minutes
-	r2 := database.CreateClient(1)
+
+// redis cloud allows only dbNo = 0 for free tier
+	r2 := database.CreateClient(0)
 	defer r2.Close()
 	val, err := r2.Get(database.Ctx, c.IP()).Result()
 	if err == redis.Nil {
@@ -56,7 +58,6 @@ func ShortenURL(c *fiber.Ctx) error {
 			"error": "Unable to connect to server",
 		})
 	} else{
-		val, _ = r2.Get(database.Ctx, c.IP()).Result()
 		valInt, _ := strconv.Atoi(val)
 		if valInt <= 0 {
 			limit, _ := r2.TTL(database.Ctx, c.IP()).Result()

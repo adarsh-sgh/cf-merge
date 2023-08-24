@@ -2,24 +2,28 @@ package database
 
 import (
 	"context"
-	"github.com/go-redis/redis/v8"
+	"log"
 	"os"
+
+	"github.com/go-redis/redis/v8"
 )
 
 var Ctx = context.Background()
 
 func CreateClient(dbNo int) *redis.Client {
-	_,DOCKER := os.LookupEnv("DOCKER")
-	var hostname string
-	if(DOCKER){
-		hostname = "db"
-	}else{
-		hostname = "localhost"
+	DB_HOST := os.Getenv("DB_HOST")
+	DB_PORT := os.Getenv("DB_PORT")
+	if DB_HOST == "" {
+		DB_HOST = "localhost"
 	}
-	DB_ADDR := hostname + ":" + os.Getenv("DB_ADDR")
+	if DB_PORT == "" {
+		DB_PORT = "6379"
+	}
+	DB_HOST = DB_HOST + ":" + DB_PORT
+	log.Println("DB_HOST: ", DB_HOST)
 	DB_PASS := os.Getenv("DB_PASS")
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     DB_ADDR,
+		Addr:     DB_HOST,
 		Password: DB_PASS,
 		DB:       dbNo,
 	})
