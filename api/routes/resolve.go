@@ -53,17 +53,19 @@ type cfResponse struct {
 func SelectProfile(profiles []string) string {
 	users := strings.Join(profiles, ";")
 	userInfoUrl := fmt.Sprintf("https://codeforces.com/api/user.info?handles=%s", users)
+	log.Println(userInfoUrl)
 	resp, err := http.Get(userInfoUrl)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 	defer resp.Body.Close()
 	var userInfos cfResponse
+	fmt.Printf("%+v\n", resp.Body)
 	if err := json.NewDecoder(resp.Body).Decode(&userInfos); err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 	if userInfos.Status != "OK" {
-		log.Fatalln("Error in fetching user info")
+		log.Println("Error in fetching user info")
 		log.Println(userInfos)
 	}
 	maxRating := 0
