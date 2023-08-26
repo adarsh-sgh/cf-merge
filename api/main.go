@@ -11,6 +11,7 @@ import (
 
 	"github.com/adarsh-sgh/cf-merge/routes"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/joho/godotenv"
 )
@@ -20,7 +21,15 @@ import (
 // for example if the short is `4fg`, the user
 // must navigate to `localhost:3000/4fg` to redirect to
 // original URL. The domain can be changes in .env file
+// allow CORS for localhost and https://cf-merge-backend.onrender.com/
 func setupRoutes(app *fiber.App) {
+	app.Use(cors.New(
+		cors.Config{
+			AllowOrigins: "http://localhost:5173, https://cf-merge-backend.onrender.com",
+			AllowHeaders: "Origin, Content-Type, Accept",
+			AllowMethods: "GET, POST, OPTIONS",
+		},
+	))
 	app.Get("/:url", routes.ResolveURL)
 	app.Post("/api/v1", routes.ShortenURL)
 }

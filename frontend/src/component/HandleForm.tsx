@@ -1,10 +1,13 @@
 import { Button, Form, Select } from "antd";
+import { getMergedLinks } from "../utils/links";
 
 export default function HandleForm() {
   return (
     <Form
-      onFinish={value => {
+      onFinish={async value => {
         console.log(value);
+        const data = await getMergedLinks(value.handles);
+        console.log(data);
       }}
     >
       <Form.Item label="Handles" name="handles">

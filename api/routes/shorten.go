@@ -40,12 +40,6 @@ func ShortenURL(c *fiber.Ctx) error {
 		})
 	}
 
-	// implement rate limiting
-	// everytime a user queries, check if the IP is already in database,
-	// if yes, decrement the calls remaining by one, else add the IP to database
-	// with expiry of `30mins`. So in this case the user will be able to send 10
-	// requests every 30 minutes
-
 // redis cloud allows only dbNo = 0 for free tier
 	r2 := database.CreateClient(0)
 	defer r2.Close()
@@ -68,31 +62,6 @@ func ShortenURL(c *fiber.Ctx) error {
 		}
 	}
 
-	// check if the input is an actual URL
-	// if !govalidator.IsURL(body.URL) {
-	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-	// 		"error": "Invalid URL",
-	// 	})
-	// }
-
-	// check for the domain error
-	// users may abuse the shortener by shorting the domain `localhost:3000` itself
-	// leading to a inifite loop, so don't accept the domain for shortening
-	// if !helpers.RemoveDomainError(body.URL) {
-	// 	return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-	// 		"error": "haha... nice try",
-	// 	})
-	// }
-
-	// enforce https
-	// all url will be converted to https before storing in database
-	// body.URL = helpers.EnforceHTTP(body.URL)
-
-	// check if the user has provided any custom dhort urls
-	// if yes, proceed,
-	// else, create a new short using the first 6 digits of uuid
-	// haven't performed any collision checks on this
-	// you can create one for your own
 	var id string
 	if body.CustomShort == "" {
 		id = uuid.New().String()[:6]
