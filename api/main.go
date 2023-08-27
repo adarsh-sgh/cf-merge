@@ -25,7 +25,8 @@ import (
 func setupRoutes(app *fiber.App) {
 	app.Use(cors.New(
 		cors.Config{
-			AllowOrigins: "http://localhost:5173, https://cf-merge-backend.onrender.com",
+			// AllowOrigins: "http://localhost:5173, https://cf-merge-backend.onrender.com",
+			AllowOrigins: "*",
 			AllowHeaders: "Origin, Content-Type, Accept",
 			AllowMethods: "GET, POST, OPTIONS",
 		},
