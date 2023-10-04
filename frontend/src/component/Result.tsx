@@ -17,8 +17,8 @@ export default function Result({
       </Link>
       <br />
       <Paragraph type="secondary">
-        You can Merge {rate_limit} more profiles before rate limit resets after{" "}
-        {rate_limit_reset} minutes.
+        You can Merge profiles {rate_limit} more times before rate limit resets
+        after {rate_limit_reset} minutes.
       </Paragraph>
     </>
   );
