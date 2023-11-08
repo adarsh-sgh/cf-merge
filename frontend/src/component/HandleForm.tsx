@@ -1,19 +1,31 @@
-import { Button, Form, Select } from "antd";
+import { Button, Form, Select, Typography } from "antd";
 import { useState } from "react";
-import { getMergedLinks } from "../utils/links";
 import { ResolvedData } from "../types/data";
+import { getMergedLinks } from "../utils/links";
 import Result from "./Result";
-
+const { Text } = Typography;
 export default function HandleForm() {
   const [resolvedData, setResolvedData] = useState<ResolvedData>();
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
   return (
     <>
       <Form
         onFinish={async value => {
-          console.log(value);
-          const data = await getMergedLinks(value.handles);
-          console.log(data);
-          setResolvedData(data);
+          setLoading(true);
+          setErr(null);
+          setResolvedData(undefined);
+          try {
+            const data = await getMergedLinks(value.handles);
+            setResolvedData(data);
+          } catch (e) {
+            if (e instanceof ErrorEvent) {
+              setErr(e.message || "Something went wrong");
+            } else {
+              setErr("Something went wrong");
+            }
+          }
+          setLoading(false);
         }}
       >
         <Form.Item label="Handles" name="handles">
@@ -23,15 +35,17 @@ export default function HandleForm() {
             tokenSeparators={[",", " "]}
             placeholder="Type comma-separated handles"
             dropdownStyle={{ display: "none" }}
+            suffixIcon={null}
           />
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" loading={loading}>
             Merge Profiles
           </Button>
         </Form.Item>
       </Form>
       {resolvedData?.url && <Result {...resolvedData} />}
+      {err && <Text type="danger">{err}</Text>}
     </>
   );
 }
