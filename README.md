@@ -18,3 +18,11 @@
 
 - react
 - antd
+
+# How to run
+frontend and backend run independently and commmunicate via API calls
+
+in development setup run backend using `go run main.go` from api folder
+and frontend using `npm start` from frontend folder
+you can use redis cloud for database
+ensure .env file is present in api folder with correct values (see .env.sample)
