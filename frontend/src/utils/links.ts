@@ -21,6 +21,9 @@ export const getMergedLinks = async (links: string[]) => {
     },
     body,
   });
+  if (!res.ok) {
+    throw new Error(res.statusText);
+  } 
   const data = await res.json();
   console.log(data);
   return data as Response;
